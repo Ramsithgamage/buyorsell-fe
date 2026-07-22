@@ -86,7 +86,7 @@ function Browse() {
       <div className="border-b bg-secondary/30">
         <div className="mx-auto max-w-7xl px-4 py-6">
           <form
-            onSubmit={(e) => { e.preventDefault(); navigate({ search: (p) => ({ ...p, q: term }) }); }}
+            onSubmit={(e) => { e.preventDefault(); navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, q: term }) }); }}
             className="flex gap-2"
           >
             <div className="relative flex-1">
