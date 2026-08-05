@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { Search, MapPin, Package } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api";
 import { SiteHeader } from "@/components/site-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,12 +28,51 @@ export const Route = createFileRoute("/browse")({
   component: Browse,
 });
 
-type Cat = { id: string; name: string; slug: string };
-type Sub = { id: string; name: string; slug: string; category_id: string };
+type CategoryTree = {
+  id: number;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  parentId: number | null;
+  children: CategoryTree[];
+};
+
 type Listing = {
-  id: string; title: string; description: string | null; price: number; currency: string;
-  condition: string; location: string | null; image_url: string | null; created_at: string;
-  category_id: string | null; subcategory_id: string | null;
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  userId: number;
+  user?: {
+    firstName: string;
+    lastName: string;
+  };
+  categoryId: number;
+  images: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const findCategoryBySlug = (tree: CategoryTree[], slug: string): CategoryTree | undefined => {
+  if (!tree) return undefined;
+  for (const node of tree) {
+    if (node.slug === slug) return node;
+    const found = findCategoryBySlug(node.children, slug);
+    if (found) return found;
+  }
+  return undefined;
+};
+
+const findCategoryById = (tree: CategoryTree[], id: number): CategoryTree | undefined => {
+  if (!tree) return undefined;
+  for (const node of tree) {
+    if (node.id === id) return node;
+    const found = findCategoryById(node.children, id);
+    if (found) return found;
+  }
+  return undefined;
 };
 
 function Browse() {
@@ -41,41 +80,30 @@ function Browse() {
   const navigate = Route.useNavigate();
   const [term, setTerm] = useState(q);
 
-  const { data: categories } = useQuery({
+  const { data: categoryTree } = useQuery({
     queryKey: ["cats"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("id,name,slug").order("name");
-      return (data ?? []) as Cat[];
+      const { data } = await apiClient.get<CategoryTree[]>("/categories");
+      return data || [];
     },
   });
 
-  const activeCat = categories?.find((c) => c.slug === category);
-
-  const { data: subs } = useQuery({
-    queryKey: ["subs", activeCat?.id],
-    enabled: !!activeCat?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("subcategories").select("id,name,slug,category_id")
-        .eq("category_id", activeCat!.id).order("name");
-      return (data ?? []) as Sub[];
-    },
-  });
+  const allCategories = categoryTree || [];
+  const activeCat = category ? findCategoryBySlug(allCategories, category) : undefined;
+  const subs = activeCat?.children || [];
+  const activeSub = sub ? findCategoryBySlug(allCategories, sub) : undefined;
+  const searchCatId = activeSub?.id || activeCat?.id;
+  const categoryById = (categoryId: number) => findCategoryById(allCategories, categoryId);
 
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["listings", q, category, sub, activeCat?.id, subs?.find((s) => s.slug === sub)?.id],
+    queryKey: ["listings", q, searchCatId],
     queryFn: async () => {
-      let query = supabase.from("listings")
-        .select("id,title,description,price,currency,condition,location,image_url,created_at,category_id,subcategory_id")
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(60);
-      if (q) query = query.ilike("title", `%${q}%`);
-      if (activeCat) query = query.eq("category_id", activeCat.id);
-      const activeSub = subs?.find((s) => s.slug === sub);
-      if (activeSub) query = query.eq("subcategory_id", activeSub.id);
-      const { data } = await query;
-      return (data ?? []) as Listing[];
+      const params: any = { page: 1, limit: 50 };
+      if (q) params.q = q;
+      if (searchCatId) params.categoryId = searchCatId;
+
+      const { data } = await apiClient.get<{ data: Listing[], meta: any }>("/advertisements", { params });
+      return data.data || [];
     },
   });
 
@@ -110,7 +138,7 @@ function Browse() {
                   All categories
                 </Link>
               </li>
-              {(categories ?? []).map((c) => (
+              {allCategories.map((c) => (
                 <li key={c.id}>
                   <Link to="/browse" search={{ q, category: c.slug, sub: "" }}
                     className={`block rounded-md px-3 py-2 text-sm ${category === c.slug ? "bg-brand text-brand-foreground" : "hover:bg-accent"}`}>
@@ -149,7 +177,7 @@ function Browse() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h1 className="text-2xl font-semibold">
-                {activeCat ? activeCat.name : "All listings"}
+                {activeSub ? activeSub.name : (activeCat ? activeCat.name : "All listings")}
                 {q && <span className="text-muted-foreground font-normal"> · "{q}"</span>}
               </h1>
               <p className="text-sm text-muted-foreground">{listings?.length ?? 0} results</p>
@@ -167,27 +195,37 @@ function Browse() {
               {listings.map((l) => (
                 <article key={l.id} className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition">
                   <div className="aspect-[4/3] bg-accent grid place-items-center overflow-hidden">
-                    {l.image_url ? (
-                      <img src={l.image_url} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
+                    {l.images && l.images.length > 0 ? (
+                      <img src={l.images[0]} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
                     ) : (
                       <Package className="h-10 w-10 text-brand/60" />
                     )}
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold line-clamp-1">{l.title}</h3>
-                      <Badge variant="secondary" className="shrink-0">{l.condition}</Badge>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold line-clamp-1">{l.title}</h3>
+                        <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          <span className="rounded-full bg-secondary px-2 py-0.5">
+                            {categoryById(l.categoryId)?.name ?? `Category ${l.categoryId}`}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     {l.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{l.description}</p>}
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-lg font-semibold text-brand">
-                        {l.currency} {Number(l.price).toLocaleString()}
-                      </span>
-                      {l.location && (
-                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{l.location}
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <span className="text-lg font-semibold text-brand">
+                          Rs {Number(l.price).toLocaleString()}
                         </span>
-                      )}
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5" />
+                          <span>Seller {l.user ? `${l.user.firstName} ${l.user.lastName}` : `#${l.userId}`}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(l.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </article>

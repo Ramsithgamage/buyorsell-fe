@@ -1,22 +1,34 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LeafyGreen, Search, LogOut, User as UserIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import type { User } from "@supabase/supabase-js";
+import { apiFetch } from "@/lib/api";
 
 export function SiteHeader() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null));
-    return () => sub.subscription.unsubscribe();
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUser({ email: payload.email || "User" });
+      } catch (e) {
+        setUser({ email: "User" });
+      }
+    }
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await apiFetch("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Failed to call logout endpoint:", error);
+    }
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
     navigate({ to: "/" });
   };
 

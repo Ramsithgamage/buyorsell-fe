@@ -106,28 +106,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          br_number: string | null
+          company_name: string | null
           avatar_url: string | null
           bio: string | null
+          first_name: string | null
           created_at: string
           display_name: string | null
+          last_name: string | null
           id: string
           phone: string | null
           updated_at: string
         }
         Insert: {
+          br_number?: string | null
+          company_name?: string | null
           avatar_url?: string | null
           bio?: string | null
+          first_name?: string | null
           created_at?: string
           display_name?: string | null
+          last_name?: string | null
           id: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
+          br_number?: string | null
+          company_name?: string | null
           avatar_url?: string | null
           bio?: string | null
+          first_name?: string | null
           created_at?: string
           display_name?: string | null
+          last_name?: string | null
           id?: string
           phone?: string | null
           updated_at?: string
@@ -237,9 +249,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_sales_role: {
+        Args: {
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "seller" | "buyer"
+      app_role: "admin" | "seller" | "buyer" | "vendor"
       listing_condition: "new" | "like_new" | "good" | "fair" | "used"
       listing_status: "active" | "sold" | "draft" | "removed"
     }
@@ -369,7 +387,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "seller", "buyer"],
+      app_role: ["admin", "seller", "buyer", "vendor"],
       listing_condition: ["new", "like_new", "good", "fair", "used"],
       listing_status: ["active", "sold", "draft", "removed"],
     },

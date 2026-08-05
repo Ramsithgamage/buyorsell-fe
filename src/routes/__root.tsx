@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { apiFetch } from "../lib/api";
 
 function NotFoundComponent() {
   return (
@@ -111,6 +112,28 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      const accessToken = localStorage.getItem('access_token');
+      const guestToken = localStorage.getItem('guest_token');
+
+      if (!accessToken && !guestToken) {
+        try {
+          const res = await apiFetch('/get_token', { method: 'POST' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.guestToken) {
+              localStorage.setItem('guest_token', data.guestToken);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch guest token:", error);
+        }
+      }
+    };
+    initializeApp();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
