@@ -63,7 +63,7 @@ function Landing() {
               </Button>
             </form>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/auth"><Button size="lg" className="bg-brand-glow text-brand hover:opacity-90">Start selling <ArrowRight className="ml-1.5 h-4 w-4" /></Button></Link>
+              <Link to="/post-ad"><Button size="lg" className="bg-brand-glow text-brand hover:opacity-90">Start selling <ArrowRight className="ml-1.5 h-4 w-4" /></Button></Link>
               <Link to="/browse"><Button size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10">Browse items</Button></Link>
             </div>
           </div>

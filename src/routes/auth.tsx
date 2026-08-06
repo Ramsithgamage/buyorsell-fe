@@ -11,7 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 
+const authSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: authSearchSchema,
   head: () => ({
     meta: [
       { title: "Sign in or create your Verdant account" },
@@ -31,6 +36,7 @@ const brNumberSchema = z.string().trim().min(1).max(50);
 type SignupAccountType = "buyer" | "vendor";
 
 function AuthPage() {
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const [tab, setTab] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -46,9 +52,9 @@ function AuthPage() {
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
     if (accessToken) {
-      navigate({ to: "/browse" });
+      navigate({ to: (search.redirect || "/browse") as any });
     }
-  }, [navigate]);
+  }, [navigate, search.redirect]);
 
   const handleGoogle = async () => {
     toast.error("Google sign-in is not supported on the custom backend yet.");
@@ -117,7 +123,7 @@ function AuthPage() {
       }
 
       toast.success("Welcome back");
-      navigate({ to: "/browse" });
+      navigate({ to: (search.redirect || "/browse") as any });
     } catch (err: any) {
       toast.error(err.message ?? "Authentication failed");
     } finally {

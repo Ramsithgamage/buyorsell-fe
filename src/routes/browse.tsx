@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const searchSchema = z.object({
-  q: z.string().catch(""),
-  category: z.string().catch(""),
-  sub: z.string().catch(""),
+  q: z.string().optional().catch(""),
+  category: z.string().optional().catch(""),
+  sub: z.string().optional().catch(""),
 });
 
 export const Route = createFileRoute("/browse")({
@@ -98,7 +98,7 @@ function Browse() {
   const { data: listings, isLoading } = useQuery({
     queryKey: ["listings", q, searchCatId],
     queryFn: async () => {
-      const params: any = { page: 1, limit: 50 };
+      const params: any = { page: 1, limit: 48 };
       if (q) params.q = q;
       if (searchCatId) params.categoryId = searchCatId;
 
