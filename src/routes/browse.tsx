@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const searchSchema = z.object({
-  q: z.string().catch(""),
-  category: z.string().catch(""),
-  sub: z.string().catch(""),
+  q: z.string().default("").catch(""),
+  category: z.string().default("").catch(""),
+  sub: z.string().default("").catch(""),
 });
 
 export const Route = createFileRoute("/browse")({
