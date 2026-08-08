@@ -30,13 +30,13 @@ export function SiteHeader() {
           <span className="text-lg tracking-tight">Verdant</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <Link to="/browse" className="hover:text-foreground transition">Browse</Link>
-          <Link to="/browse" search={{ q: "", category: "electronics" }} className="hover:text-foreground transition">Electronics</Link>
-          <Link to="/browse" search={{ q: "", category: "fashion" }} className="hover:text-foreground transition">Fashion</Link>
-          <Link to="/browse" search={{ q: "", category: "vehicles" }} className="hover:text-foreground transition">Vehicles</Link>
+          <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hover:text-foreground transition">Browse</Link>
+          <Link to="/browse" search={{ q: "", category: "electronics", sub: "" }} className="hover:text-foreground transition">Electronics</Link>
+          <Link to="/browse" search={{ q: "", category: "fashion", sub: "" }} className="hover:text-foreground transition">Fashion</Link>
+          <Link to="/browse" search={{ q: "", category: "vehicles", sub: "" }} className="hover:text-foreground transition">Vehicles</Link>
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link to="/browse" className="hidden sm:inline-flex">
+          <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hidden sm:inline-flex">
             <Button variant="ghost" size="sm"><Search className="h-4 w-4 mr-1.5" />Search</Button>
           </Link>
           {user ? (
