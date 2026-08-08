@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AdDetailModal } from "@/components/AdDetailModal";
 
 const searchSchema = z.object({
   q: z.string().optional().catch(""),
@@ -79,6 +80,7 @@ function Browse() {
   const { q, category, sub } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [term, setTerm] = useState(q);
+  const [selectedAd, setSelectedAd] = useState<Listing | null>(null);
 
   const { data: categoryTree } = useQuery({
     queryKey: ["cats"],
@@ -193,7 +195,11 @@ function Browse() {
           ) : listings && listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {listings.map((l) => (
-                <article key={l.id} className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition">
+                <article 
+                  key={l.id} 
+                  className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition cursor-pointer"
+                  onClick={() => setSelectedAd(l)}
+                >
                   <div className="aspect-[4/3] bg-accent grid place-items-center overflow-hidden">
                     {l.images && l.images.length > 0 ? (
                       <img src={l.images[0]} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
@@ -245,6 +251,14 @@ function Browse() {
           )}
         </main>
       </div>
+
+      {selectedAd && (
+        <AdDetailModal 
+          listing={selectedAd} 
+          onClose={() => setSelectedAd(null)} 
+          categoryName={categoryById(selectedAd.categoryId)?.name ?? `Category ${selectedAd.categoryId}`}
+        />
+      )}
     </div>
   );
 }
