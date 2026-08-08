@@ -197,7 +197,7 @@ function Landing() {
                 <p className="mt-2 max-w-md text-sm text-white/80">
                   Thousands of listings across electronics, fashion, vehicles and more.
                 </p>
-                <Link to="/browse" className="mt-5">
+                <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="mt-5">
                   <Button className="bg-brand-glow text-brand hover:opacity-90">Shop now</Button>
                 </Link>
               </div>
@@ -251,7 +251,7 @@ function Landing() {
                 ))}
               </div>
             </div>
-            <Link to="/browse" className="shrink-0 text-sm text-brand hover:underline">
+            <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="shrink-0 text-sm text-brand hover:underline">
               Shop all →
             </Link>
           </div>
@@ -296,7 +296,7 @@ function Landing() {
           ))}
         </div>
         <div className="mt-6 text-center">
-          <Link to="/browse">
+          <Link to="/browse" search={{ q: "", category: "", sub: "" }}>
             <Button variant="outline">Load more listings</Button>
           </Link>
         </div>
@@ -306,7 +306,7 @@ function Landing() {
         <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 px-4 py-10 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} Verdant Marketplace</span>
           <div className="flex gap-4">
-            <Link to="/browse" className="hover:text-foreground">Browse</Link>
+            <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hover:text-foreground">Browse</Link>
             <Link to="/auth" className="hover:text-foreground">Sign in</Link>
           </div>
         </div>

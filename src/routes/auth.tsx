@@ -38,7 +38,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/browse" });
+      if (data.session) navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
     });
   }, [navigate]);
 
@@ -67,12 +67,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Account created — you're signed in.");
-        navigate({ to: "/browse" });
+        navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: ep.data, password: pp.data });
         if (error) throw error;
         toast.success("Welcome back");
-        navigate({ to: "/browse" });
+        navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
       }
     } catch (err: any) {
       toast.error(err.message ?? "Authentication failed");
