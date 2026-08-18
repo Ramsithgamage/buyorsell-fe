@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { Search, MapPin, Package } from "lucide-react";
+import { Search, MapPin, Package, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { SiteHeader } from "@/components/site-header";
@@ -153,6 +153,12 @@ function Browse() {
               </h1>
               <p className="text-sm text-muted-foreground">{listings?.length ?? 0} results</p>
             </div>
+            <Link to="/post-ad">
+              <Button size="icon" className="h-10 w-10 rounded-full bg-brand text-brand-foreground hover:opacity-90 shadow-sm transition-transform hover:scale-105">
+                <Plus className="h-5 w-5" />
+                <span className="sr-only">Post Ad</span>
+              </Button>
+            </Link>
           </div>
 
           {isLoading ? (

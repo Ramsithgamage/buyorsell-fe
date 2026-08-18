@@ -9,9 +9,15 @@ export const api = async (endpoint: string, options: RequestInit = {}) => {
   const token = accessToken || guestToken;
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const isFormDataDuckTyped = options.body && typeof (options.body as any).append === "function";
+
+  if (!isFormData && !isFormDataDuckTyped) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;

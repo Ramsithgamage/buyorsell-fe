@@ -12,7 +12,7 @@ import {
   Zap,
   Star,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,15 +40,12 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-type Category = { id: string; name: string; slug: string; icon: string | null };
+type Category = { id: number; name: string; slug: string; icon: string | null };
 type Listing = {
-  id: string;
+  id: number;
   title: string;
   price: number;
-  currency: string;
-  condition: string;
-  location: string | null;
-  image_url: string | null;
+  images: string[];
 };
 
 function useCountdown(seconds: number) {
@@ -63,10 +60,10 @@ function useCountdown(seconds: number) {
   return [h, m, s];
 }
 
-function Price({ value, currency }: { value: number; currency: string }) {
+function Price({ value }: { value: number }) {
   return (
     <div className="mt-1 font-semibold text-brand">
-      {currency} {Number(value).toLocaleString()}
+      LKR {Number(value).toLocaleString()}
     </div>
   );
 }
@@ -79,9 +76,9 @@ function ProductCard({ l }: { l: Listing }) {
       className="group overflow-hidden rounded-lg border bg-card transition hover:shadow-lg"
     >
       <div className="aspect-square overflow-hidden bg-muted">
-        {l.image_url ? (
+        {l.images && l.images.length > 0 ? (
           <img
-            src={l.image_url}
+            src={l.images[0]}
             alt={l.title}
             loading="lazy"
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
@@ -94,13 +91,7 @@ function ProductCard({ l }: { l: Listing }) {
       </div>
       <div className="p-3">
         <div className="line-clamp-2 min-h-10 text-sm">{l.title}</div>
-        <Price value={l.price} currency={l.currency} />
-        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <Star className="h-3 w-3 fill-brand-glow text-brand-glow" />
-          4.6
-          <span className="mx-1">•</span>
-          {l.location ?? "Sri Lanka"}
-        </div>
+        <Price value={l.price} />
       </div>
     </Link>
   );
@@ -112,7 +103,7 @@ function Landing() {
   const { data: categories } = useQuery({
     queryKey: ["home-categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("id,name,slug,icon").order("name");
+      const data = await api("/categories");
       return (data ?? []) as Category[];
     },
   });
@@ -120,13 +111,8 @@ function Landing() {
   const { data: listings } = useQuery({
     queryKey: ["home-listings"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("listings")
-        .select("id,title,price,currency,condition,location,image_url")
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(24);
-      return (data ?? []) as Listing[];
+      const data = await api("/advertisements?limit=24&page=1");
+      return (data?.data ?? []) as Listing[];
     },
   });
 
