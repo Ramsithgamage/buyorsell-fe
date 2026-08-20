@@ -4,21 +4,50 @@ import { LeafyGreen, Search, LogOut, User as UserIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
+import { api } from "@/lib/api";
+import { useProfile } from "@/hooks/use-profile";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function SiteHeader() {
-  const [user, setUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
+  const [hasToken, setHasToken] = useState(false);
+  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null));
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data }) => setSupabaseUser(data.session?.user ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSupabaseUser(s?.user ?? null));
+    
+    // Check custom token on mount
+    setHasToken(!!localStorage.getItem("access_token"));
+    
+    // Listen for storage changes across tabs
+    const handleStorage = () => setHasToken(!!localStorage.getItem("access_token"));
+    window.addEventListener("storage", handleStorage);
+    
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const signOut = async () => {
+    try {
+      await api("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
     await supabase.auth.signOut();
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setHasToken(false);
+    queryClient.setQueryData(["profile"], null);
     navigate({ to: "/" });
   };
+
+  const userEmail = profile?.email || supabaseUser?.email;
+  const isAuthenticated = hasToken || !!supabaseUser;
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
@@ -39,11 +68,13 @@ export function SiteHeader() {
           <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hidden sm:inline-flex">
             <Button variant="ghost" size="sm"><Search className="h-4 w-4 mr-1.5" />Search</Button>
           </Link>
-          {user ? (
+          {isAuthenticated ? (
             <>
-              <span className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
-                <UserIcon className="h-4 w-4" />{user.email}
-              </span>
+              {userEmail && (
+                <span className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <UserIcon className="h-4 w-4" />{userEmail}
+                </span>
+              )}
               <Button size="sm" variant="outline" onClick={signOut}>
                 <LogOut className="h-4 w-4 mr-1.5" />Sign out
               </Button>
