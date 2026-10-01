@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   Check,
   X,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
@@ -98,7 +100,8 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
   const [usersPage, setUsersPage] = useState(1);
-  const [adsPage, setAdsPage] = useState(1);
+  const [activeAdsPage, setActiveAdsPage] = useState(1);
+  const [inactiveAdsPage, setInactiveAdsPage] = useState(1);
   const queryClient = useQueryClient();
 
   // ── Queries ──
@@ -117,9 +120,14 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     queryFn: () => api("/dashboard/admin/pending"),
   });
 
-  const { data: ads, isLoading: adsLoading } = useQuery<PaginatedAds>({
-    queryKey: ["dashboard-all-ads", adsPage],
-    queryFn: () => api(`/advertisements?page=${adsPage}&limit=15`),
+  const { data: activeAds, isLoading: activeAdsLoading } = useQuery<PaginatedAds>({
+    queryKey: ["dashboard-admin-ads", "active", activeAdsPage],
+    queryFn: () => api(`/dashboard/admin/advertisements?isActive=true&page=${activeAdsPage}&limit=15`),
+  });
+
+  const { data: inactiveAds, isLoading: inactiveAdsLoading } = useQuery<PaginatedAds>({
+    queryKey: ["dashboard-admin-ads", "inactive", inactiveAdsPage],
+    queryFn: () => api(`/dashboard/admin/advertisements?isActive=false&page=${inactiveAdsPage}&limit=15`),
   });
 
   // ── Approve / Reject mutation ──
@@ -136,6 +144,21 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       queryClient.invalidateQueries({ queryKey: ["dashboard-admin-stats"] });
     },
     onError: () => toast.error("Action failed. Please try again."),
+  });
+
+  // ── Toggle Ad Status mutation ──
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ adId, isActive }: { adId: number; isActive: boolean }) =>
+      api(`/advertisements/${adId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive }),
+      }),
+    onSuccess: () => {
+      toast.success("Advertisement status updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-admin-ads"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-admin-stats"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Failed to update advertisement status. Please try again."),
   });
 
   // ── Column definitions ──
@@ -249,11 +272,27 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       label: "Status",
       render: (row) =>
         row.isActive ? (
-          <Badge className="bg-brand/10 text-brand border-brand/20 hover:bg-brand/20">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1.5 border-brand/20 bg-brand/10 text-brand hover:bg-brand/20"
+            disabled={toggleStatusMutation.isPending}
+            onClick={() => toggleStatusMutation.mutate({ adId: Number(row.id), isActive: false })}
+          >
+            <ToggleRight className="h-3.5 w-3.5" />
             Active
-          </Badge>
+          </Button>
         ) : (
-          <Badge variant="secondary">Inactive</Badge>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 gap-1.5"
+            disabled={toggleStatusMutation.isPending}
+            onClick={() => toggleStatusMutation.mutate({ adId: Number(row.id), isActive: true })}
+          >
+            <ToggleLeft className="h-3.5 w-3.5" />
+            Inactive
+          </Button>
         ),
     },
     {
@@ -338,7 +377,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="ads">Advertisements</TabsTrigger>
+          <TabsTrigger value="active-ads">Active Ads</TabsTrigger>
+          <TabsTrigger value="inactive-ads">Inactive Ads</TabsTrigger>
         </TabsList>
 
         {/* ── Users tab ── */}
@@ -377,15 +417,27 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           )}
         </TabsContent>
 
-        {/* ── Ads tab ── */}
-        <TabsContent value="ads" className="mt-4">
+        {/* ── Active Ads tab ── */}
+        <TabsContent value="active-ads" className="mt-4">
           <DataTable
             columns={adsColumns}
-            data={(ads?.data as Record<string, unknown>[]) ?? []}
-            meta={ads?.meta}
-            onPageChange={setAdsPage}
-            isLoading={adsLoading}
-            emptyMessage="No advertisements found."
+            data={(activeAds?.data as Record<string, unknown>[]) ?? []}
+            meta={activeAds?.meta}
+            onPageChange={setActiveAdsPage}
+            isLoading={activeAdsLoading}
+            emptyMessage="No active advertisements found."
+          />
+        </TabsContent>
+
+        {/* ── Inactive Ads tab ── */}
+        <TabsContent value="inactive-ads" className="mt-4">
+          <DataTable
+            columns={adsColumns}
+            data={(inactiveAds?.data as Record<string, unknown>[]) ?? []}
+            meta={inactiveAds?.meta}
+            onPageChange={setInactiveAdsPage}
+            isLoading={inactiveAdsLoading}
+            emptyMessage="No inactive advertisements found."
           />
         </TabsContent>
       </Tabs>
