@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   Package,
@@ -8,7 +8,10 @@ import {
   Building2,
   Eye,
   Pencil,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { DataTable, type Column } from "@/components/dashboard/data-table";
@@ -56,66 +59,97 @@ interface VendorDashboardProps {
   user: UserProfile;
 }
 
-const productColumns: Column<Record<string, unknown>>[] = [
-  {
-    key: "title",
-    label: "Product",
-    render: (row) => (
-      <span className="font-medium line-clamp-1 max-w-[260px]">
-        {String(row.title)}
-      </span>
-    ),
-  },
-  {
-    key: "price",
-    label: "Price (LKR)",
-    render: (row) => (
-      <span className="tabular-nums">
-        {Number(row.price).toLocaleString()}
-      </span>
-    ),
-  },
-  {
-    key: "isActive",
-    label: "Status",
-    render: (row) =>
-      row.isActive ? (
-        <Badge className="bg-brand/10 text-brand border-brand/20 hover:bg-brand/20">
-          Active
-        </Badge>
-      ) : (
-        <Badge variant="secondary">Inactive</Badge>
-      ),
-  },
-  {
-    key: "createdAt",
-    label: "Listed",
-    render: (row) => (
-      <span className="text-muted-foreground text-xs">
-        {new Date(String(row.createdAt)).toLocaleDateString()}
-      </span>
-    ),
-  },
-  {
-    key: "actions",
-    label: "",
-    render: (row) => (
-      <div className="flex items-center gap-1">
-        <Link to="/listing/$id" params={{ id: String(row.id) }}>
-          <Button variant="ghost" size="icon" className="h-7 w-7" title="View">
-            <Eye className="h-3.5 w-3.5" />
-          </Button>
-        </Link>
-        <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" disabled>
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    ),
-  },
-];
-
 export function VendorDashboard({ user }: VendorDashboardProps) {
   const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ adId, isActive }: { adId: number; isActive: boolean }) =>
+      api(`/advertisements/${adId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive }),
+      }),
+    onSuccess: () => {
+      toast.success("Product status updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-my-ads"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-my-stats"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Failed to update product status. Please try again."),
+  });
+
+  const productColumns: Column<Record<string, unknown>>[] = [
+    {
+      key: "title",
+      label: "Product",
+      render: (row) => (
+        <span className="font-medium line-clamp-1 max-w-[260px]">
+          {String(row.title)}
+        </span>
+      ),
+    },
+    {
+      key: "price",
+      label: "Price (LKR)",
+      render: (row) => (
+        <span className="tabular-nums">
+          {Number(row.price).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      render: (row) =>
+        row.isActive ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1.5 border-brand/20 bg-brand/10 text-brand hover:bg-brand/20"
+            disabled={toggleStatusMutation.isPending}
+            onClick={() => toggleStatusMutation.mutate({ adId: Number(row.id), isActive: false })}
+          >
+            <ToggleRight className="h-3.5 w-3.5" />
+            Active
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 gap-1.5"
+            disabled={toggleStatusMutation.isPending}
+            onClick={() => toggleStatusMutation.mutate({ adId: Number(row.id), isActive: true })}
+          >
+            <ToggleLeft className="h-3.5 w-3.5" />
+            Inactive
+          </Button>
+        ),
+    },
+    {
+      key: "createdAt",
+      label: "Listed",
+      render: (row) => (
+        <span className="text-muted-foreground text-xs">
+          {new Date(String(row.createdAt)).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "",
+      render: (row) => (
+        <div className="flex items-center gap-1">
+          <Link to="/listing/$id" params={{ id: String(row.id) }}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" title="View">
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" disabled>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   const { data: stats, isLoading: statsLoading } = useQuery<MyStats>({
     queryKey: ["dashboard-my-stats"],
