@@ -138,10 +138,10 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
                       {/* Owner Info placeholder */}
                       <div className="flex items-center gap-3 p-4 rounded-lg border bg-card">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                          {ad.userId}
+                          {ad.user ? `${ad.user.firstName.charAt(0)}${ad.user.lastName.charAt(0)}`.toUpperCase() : ad.userId}
                         </div>
                         <div>
-                          <p className="font-medium text-sm">User ID: {ad.userId}</p>
+                          <p className="font-medium text-sm">{ad.user ? `${ad.user.firstName} ${ad.user.lastName}` : `User ID: ${ad.userId}`}</p>
                           <p className="text-xs text-muted-foreground">Seller on Verdant</p>
                         </div>
                       </div>

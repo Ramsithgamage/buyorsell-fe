@@ -43,7 +43,7 @@ function AuthPage() {
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
     if (accessToken) {
-      navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
+      navigate({ to: "/dashboard" });
     }
   }, [navigate]);
 
@@ -102,7 +102,7 @@ function AuthPage() {
           }
           localStorage.removeItem("guest_token");
           toast.success("Welcome back");
-          navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
+          navigate({ to: "/dashboard" });
         } else {
           throw new Error("Invalid response from server");
         }

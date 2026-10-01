@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowseRouteImport } from './routes/browse'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PostAdRouteImport } from './routes/post-ad'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
@@ -29,6 +30,11 @@ const AuthRoute = AuthRouteImport.update({
 const BrowseRoute = BrowseRouteImport.update({
   id: '/browse',
   path: '/browse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostAdRoute = PostAdRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/browse' | '/post-ad' | '/sitemap.xml' | '/listing/$id'
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/dashboard'
+    | '/post-ad'
+    | '/sitemap.xml'
+    | '/listing/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/browse' | '/post-ad' | '/sitemap.xml' | '/listing/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/dashboard'
+    | '/post-ad'
+    | '/sitemap.xml'
+    | '/listing/$id'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/browse'
+    | '/dashboard'
     | '/post-ad'
     | '/sitemap.xml'
     | '/listing/$id'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   BrowseRoute: typeof BrowseRoute
+  DashboardRoute: typeof DashboardRoute
   PostAdRoute: typeof PostAdRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ListingIdRoute: typeof ListingIdRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/browse'
       fullPath: '/browse'
       preLoaderRoute: typeof BrowseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post-ad': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   BrowseRoute: BrowseRoute,
+  DashboardRoute: DashboardRoute,
   PostAdRoute: PostAdRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ListingIdRoute: ListingIdRoute,

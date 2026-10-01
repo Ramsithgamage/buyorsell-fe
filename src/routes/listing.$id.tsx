@@ -128,10 +128,10 @@ function ListingDetail() {
               <div className="mt-auto space-y-6 pt-6">
                 <div className="flex items-center gap-4 p-5 rounded-xl border bg-card/50 shadow-sm">
                   <div className="h-12 w-12 rounded-full bg-brand/10 flex items-center justify-center text-brand font-medium text-lg">
-                    {ad.userId}
+                    {ad.user ? `${ad.user.firstName.charAt(0)}${ad.user.lastName.charAt(0)}`.toUpperCase() : ad.userId}
                   </div>
                   <div>
-                    <p className="font-semibold">User ID: {ad.userId}</p>
+                    <p className="font-semibold">{ad.user ? `${ad.user.firstName} ${ad.user.lastName}` : `User ID: ${ad.userId}`}</p>
                     <p className="text-sm text-muted-foreground">Seller on Verdant</p>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LeafyGreen, Search, LogOut, User as UserIcon } from "lucide-react";
+import { LeafyGreen, Search, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
@@ -75,6 +75,11 @@ export function SiteHeader() {
                   <UserIcon className="h-4 w-4" />{userEmail}
                 </span>
               )}
+              <Link to="/dashboard">
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <LayoutDashboard className="h-4 w-4" />Dashboard
+                </Button>
+              </Link>
               <Button size="sm" variant="outline" onClick={signOut}>
                 <LogOut className="h-4 w-4 mr-1.5" />Sign out
               </Button>

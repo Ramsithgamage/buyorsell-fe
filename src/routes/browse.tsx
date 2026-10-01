@@ -35,6 +35,7 @@ type Sub = { id: number; name: string; slug: string; parentId: number | null };
 type Listing = {
   id: number; title: string; description: string; price: number;
   userId: number; categoryId: number; images: string[]; updatedAt: string;
+  user?: { firstName: string; lastName: string };
 };
 
 function Browse() {
@@ -190,7 +191,7 @@ function Browse() {
                     
                     <div className="mt-2 text-xs text-muted-foreground">
                       <span className="block">Category: {getCategoryName(l.categoryId)}</span>
-                      <span className="block">User ID: {l.userId}</span>
+                      <span className="block">Seller: {l.user ? `${l.user.firstName} ${l.user.lastName}` : `User ${l.userId}`}</span>
                       <span className="block">Updated: {new Date(l.updatedAt).toLocaleDateString()}</span>
                     </div>
 
