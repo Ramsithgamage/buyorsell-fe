@@ -112,6 +112,36 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    const initializeApp = async () => {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        const guestToken = localStorage.getItem("guest_token");
+        if (!guestToken) {
+          try {
+            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+            const response = await fetch(`${API_BASE_URL}/get_token`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            if (response.ok) {
+              const data = await response.json();
+              if (data.guestToken) {
+                localStorage.setItem("guest_token", data.guestToken);
+              }
+            }
+          } catch (error) {
+            console.error("Failed to fetch guest token:", error);
+          }
+        }
+      }
+    };
+
+    initializeApp();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

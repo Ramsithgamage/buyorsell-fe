@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { Search, MapPin, Package } from "lucide-react";
+import { Search, MapPin, Package, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { SiteHeader } from "@/components/site-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AdDetailsModal } from "@/components/ad-details-modal";
 
 const searchSchema = z.object({
   q: z.string().catch(""),
@@ -28,56 +30,54 @@ export const Route = createFileRoute("/browse")({
   component: Browse,
 });
 
-type Cat = { id: string; name: string; slug: string };
-type Sub = { id: string; name: string; slug: string; category_id: string };
+type Cat = { id: number; name: string; slug: string; parentId: number | null; children?: Sub[] };
+type Sub = { id: number; name: string; slug: string; parentId: number | null };
 type Listing = {
-  id: string; title: string; description: string | null; price: number; currency: string;
-  condition: string; location: string | null; image_url: string | null; created_at: string;
-  category_id: string | null; subcategory_id: string | null;
+  id: number; title: string; description: string; price: number;
+  userId: number; categoryId: number; images: string[]; updatedAt: string;
+  user?: { firstName: string; lastName: string };
 };
 
 function Browse() {
   const { q, category, sub } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [term, setTerm] = useState(q);
+  const [selectedAdId, setSelectedAdId] = useState<number | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["cats"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("id,name,slug").order("name");
+      const data = await api("/categories");
       return (data ?? []) as Cat[];
     },
   });
 
   const activeCat = categories?.find((c) => c.slug === category);
-
-  const { data: subs } = useQuery({
-    queryKey: ["subs", activeCat?.id],
-    enabled: !!activeCat?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("subcategories").select("id,name,slug,category_id")
-        .eq("category_id", activeCat!.id).order("name");
-      return (data ?? []) as Sub[];
-    },
-  });
+  const subs = activeCat?.children ?? [];
 
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["listings", q, category, sub, activeCat?.id, subs?.find((s) => s.slug === sub)?.id],
+    queryKey: ["listings", q, category, sub],
     queryFn: async () => {
-      let query = supabase.from("listings")
-        .select("id,title,description,price,currency,condition,location,image_url,created_at,category_id,subcategory_id")
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(60);
-      if (q) query = query.ilike("title", `%${q}%`);
-      if (activeCat) query = query.eq("category_id", activeCat.id);
       const activeSub = subs?.find((s) => s.slug === sub);
-      if (activeSub) query = query.eq("subcategory_id", activeSub.id);
-      const { data } = await query;
-      return (data ?? []) as Listing[];
+      const catId = activeSub ? activeSub.id : (activeCat ? activeCat.id : undefined);
+
+      const params = new URLSearchParams({ limit: "50", page: "1" });
+      if (q) params.append("q", q);
+      if (catId) params.append("categoryId", catId.toString());
+
+      const data = await api(`/advertisements?${params.toString()}`);
+      return (data?.data ?? []) as Listing[];
     },
   });
+
+  const getCategoryName = (categoryId: number) => {
+    for (const cat of categories ?? []) {
+      if (cat.id === categoryId) return cat.name;
+      const subCat = cat.children?.find((s: Sub) => s.id === categoryId);
+      if (subCat) return subCat.name;
+    }
+    return "Unknown Category";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,6 +154,12 @@ function Browse() {
               </h1>
               <p className="text-sm text-muted-foreground">{listings?.length ?? 0} results</p>
             </div>
+            <Link to="/post-ad">
+              <Button size="icon" className="h-10 w-10 rounded-full bg-brand text-brand-foreground hover:opacity-90 shadow-sm transition-transform hover:scale-105">
+                <Plus className="h-5 w-5" />
+                <span className="sr-only">Post Ad</span>
+              </Button>
+            </Link>
           </div>
 
           {isLoading ? (
@@ -165,10 +171,14 @@ function Browse() {
           ) : listings && listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {listings.map((l) => (
-                <article key={l.id} className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition">
+                <article 
+                  key={l.id} 
+                  className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition cursor-pointer"
+                  onClick={() => setSelectedAdId(l.id)}
+                >
                   <div className="aspect-[4/3] bg-accent grid place-items-center overflow-hidden">
-                    {l.image_url ? (
-                      <img src={l.image_url} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
+                    {l.images && l.images.length > 0 ? (
+                      <img src={l.images[0]} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
                     ) : (
                       <Package className="h-10 w-10 text-brand/60" />
                     )}
@@ -176,18 +186,19 @@ function Browse() {
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold line-clamp-1">{l.title}</h3>
-                      <Badge variant="secondary" className="shrink-0">{l.condition}</Badge>
                     </div>
                     {l.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{l.description}</p>}
+                    
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      <span className="block">Category: {getCategoryName(l.categoryId)}</span>
+                      <span className="block">Seller: {l.user ? `${l.user.firstName} ${l.user.lastName}` : `User ${l.userId}`}</span>
+                      <span className="block">Updated: {new Date(l.updatedAt).toLocaleDateString()}</span>
+                    </div>
+
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-lg font-semibold text-brand">
-                        {l.currency} {Number(l.price).toLocaleString()}
+                        LKR {Number(l.price).toLocaleString()}
                       </span>
-                      {l.location && (
-                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{l.location}
-                        </span>
-                      )}
                     </div>
                   </div>
                 </article>
@@ -207,6 +218,8 @@ function Browse() {
           )}
         </main>
       </div>
+
+      <AdDetailsModal id={selectedAdId} onClose={() => setSelectedAdId(null)} />
     </div>
   );
 }

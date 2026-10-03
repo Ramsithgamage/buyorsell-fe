@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LeafyGreen } from "lucide-react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { lovable } from "@/integrations/lovable";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
@@ -32,14 +32,19 @@ function AuthPage() {
   const [tab, setTab] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [accountType, setAccountType] = useState<"buyer" | "seller">("buyer");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [accountType, setAccountType] = useState<"buyer_seller" | "vendor">("buyer_seller");
+  const [companyName, setCompanyName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
-    });
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      navigate({ to: "/dashboard" });
+    }
   }, [navigate]);
 
   const handleGoogle = async () => {
@@ -53,26 +58,54 @@ function AuthPage() {
     const pp = passSchema.safeParse(password);
     if (!ep.success) return toast.error("Enter a valid email");
     if (!pp.success) return toast.error("Password must be at least 6 characters");
+    if (tab === "signup" && password !== confirmPassword) return toast.error("Passwords do not match");
 
     setLoading(true);
     try {
       if (tab === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const payload = {
           email: ep.data,
           password: pp.data,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { display_name: displayName || ep.data.split("@")[0], account_type: accountType },
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created — you're signed in.");
-        navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
+          passwordConfirm: confirmPassword,
+          firstName: firstName,
+          lastName: lastName,
+        };
+
+        if (accountType === "vendor") {
+          await api("/auth/register/vendor", {
+            method: "POST",
+            body: JSON.stringify({
+              ...payload,
+              companyName: companyName,
+              businessRegistrationNumber: registrationNumber,
+            }),
+          });
+        } else {
+          await api("/auth/register", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+        }
+
+        toast.success("Account created! Please sign in.");
+        setTab("signin");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: ep.data, password: pp.data });
-        if (error) throw error;
-        toast.success("Welcome back");
-        navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
+        const data = await api("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email: ep.data, password: pp.data }),
+        });
+
+        if (data && data.accessToken) {
+          localStorage.setItem("access_token", data.accessToken);
+          if (data.refreshToken) {
+            localStorage.setItem("refresh_token", data.refreshToken);
+          }
+          localStorage.removeItem("guest_token");
+          toast.success("Welcome back");
+          navigate({ to: "/dashboard" });
+        } else {
+          throw new Error("Invalid response from server");
+        }
       }
     } catch (err: any) {
       toast.error(err.message ?? "Authentication failed");
@@ -111,18 +144,24 @@ function AuthPage() {
 
             <form onSubmit={submit} className="space-y-4">
               <TabsContent value="signup" className="space-y-4 m-0">
-                <div>
-                  <Label htmlFor="name">Display name</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={50} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="first-name">First Name</Label>
+                    <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={50} />
+                  </div>
+                  <div>
+                    <Label htmlFor="last-name">Last Name</Label>
+                    <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={50} />
+                  </div>
                 </div>
                 <div>
                   <Label>I want to</Label>
-                  <RadioGroup value={accountType} onValueChange={(v) => setAccountType(v as "buyer" | "seller")} className="mt-2 grid grid-cols-2 gap-2">
+                  <RadioGroup value={accountType} onValueChange={(v) => setAccountType(v as "buyer_seller" | "vendor")} className="mt-2 grid grid-cols-2 gap-2">
                     <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-accent">
-                      <RadioGroupItem value="buyer" /> Buy items
+                      <RadioGroupItem value="buyer_seller" /> Buyer/Seller
                     </label>
                     <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-accent">
-                      <RadioGroupItem value="seller" /> Sell items
+                      <RadioGroupItem value="vendor" /> Vendor
                     </label>
                   </RadioGroup>
                 </div>
@@ -132,10 +171,31 @@ function AuthPage() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
+
+              {tab === "signup" && accountType === "vendor" && (
+                <>
+                  <div>
+                    <Label htmlFor="company-name">Company Name</Label>
+                    <Input id="company-name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="registration-number">Business Registration Number</Label>
+                    <Input id="registration-number" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} required />
+                  </div>
+                </>
+              )}
+
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
               </div>
+
+              {tab === "signup" && (
+                <div>
+                  <Label htmlFor="confirm-password">Password Confirmation</Label>
+                  <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} />
+                </div>
+              )}
               <Button type="submit" className="w-full bg-brand text-brand-foreground hover:opacity-90" disabled={loading}>
                 {loading ? "Please wait…" : tab === "signup" ? "Create account" : "Sign in"}
               </Button>
