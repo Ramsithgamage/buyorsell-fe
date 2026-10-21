@@ -41,6 +41,14 @@ function ListingDetail() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const { data: categories } = useQuery({
+    queryKey: ["cats"],
+    queryFn: async () => {
+      const data = await api("/categories");
+      return (data ?? []) as Array<{ id: number; name: string; children?: Array<{ id: number; name: string }> }>;
+    },
+  });
+
   const { data: ad, isLoading, isError } = useQuery({
     queryKey: ["advertisement", Number(id)],
     queryFn: async () => {
@@ -50,6 +58,19 @@ function ListingDetail() {
     enabled: !!id,
   });
 
+  const getCategoryName = () => {
+    if (ad?.category?.name) return ad.category.name;
+    if (!ad?.categoryId || !categories) return null;
+    for (const cat of categories) {
+      if (cat.id === ad.categoryId) return cat.name;
+      const sub = cat.children?.find((s) => s.id === ad.categoryId);
+      if (sub) return sub.name;
+    }
+    return null;
+  };
+
+  const categoryName = getCategoryName();
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       await api(`/advertisements/${id}`, { method: "DELETE" });
@@ -57,7 +78,7 @@ function ListingDetail() {
     onSuccess: () => {
       toast.success("Advertisement deleted");
       queryClient.invalidateQueries({ queryKey: ["listings"] });
-      navigate({ to: "/browse" });
+      navigate({ to: "/browse", search: { q: "", category: "", sub: "" } });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete advertisement");
@@ -65,7 +86,7 @@ function ListingDetail() {
   });
 
   const isOwner = profile && ad && profile.id === ad.userId;
-  const isAdmin = profile && profile.role === "admin";
+  const isAdmin = profile && (profile.role === "ADMIN" || (profile.role as string) === "admin");
   const showEdit = isOwner;
   const showDelete = isOwner || isAdmin;
 
@@ -88,7 +109,7 @@ function ListingDetail() {
           <div className="flex flex-col items-center justify-center py-32 text-center border border-dashed rounded-xl">
             <p className="text-xl font-medium text-destructive mb-3">Listing not found</p>
             <p className="text-muted-foreground mb-6">This advertisement may have been deleted or is unavailable.</p>
-            <Button onClick={() => navigate({ to: "/browse" })}>Back to Browse</Button>
+            <Button onClick={() => navigate({ to: "/browse", search: { q: "", category: "", sub: "" } })}>Back to Browse</Button>
           </div>
         ) : (
           <div className="grid lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16">
@@ -102,10 +123,10 @@ function ListingDetail() {
               <div className="mb-6">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-balance">{ad.title}</h1>
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
-                  {ad.categoryId && (
+                  {(categoryName || ad.categoryId) && (
                     <div className="flex items-center text-sm font-medium">
                       <Tag className="mr-1.5 h-4 w-4" />
-                      <span>Category: {ad.categoryId}</span>
+                      <span>Category: {categoryName || `Category ${ad.categoryId}`}</span>
                     </div>
                   )}
                   <div className="flex items-center text-sm">

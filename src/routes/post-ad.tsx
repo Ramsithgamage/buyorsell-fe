@@ -257,7 +257,7 @@ function PostAd() {
             </Card>
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => navigate({ to: "/browse" })}>
+              <Button type="button" variant="outline" onClick={() => navigate({ to: "/browse", search: { q: "", category: "", sub: "" } })}>
                 Cancel
               </Button>
               <Button type="submit" className="bg-brand text-brand-foreground hover:opacity-90 min-w-[120px]" disabled={loading}>

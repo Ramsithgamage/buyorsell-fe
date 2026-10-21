@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useProfile } from "@/hooks/use-profile";
 import { toast } from "sonner";
-import { X, MapPin, Tag } from "lucide-react";
+import { MapPin, Tag } from "lucide-react";
 
 import {
   Dialog,
@@ -27,6 +27,20 @@ import { Badge } from "@/components/ui/badge";
 import { ImageGallery } from "@/components/image-gallery";
 import { AdEditModal } from "@/components/ad-edit-modal";
 
+interface SubCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface CategoryTreeItem {
+  id: number;
+  name: string;
+  slug: string;
+  parentId: number | null;
+  children?: SubCategory[];
+}
+
 interface AdDetailsModalProps {
   id: number | null;
   onClose: () => void;
@@ -38,6 +52,14 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
   const queryClient = useQueryClient();
   const { data: profile } = useProfile();
 
+  const { data: categories } = useQuery({
+    queryKey: ["cats"],
+    queryFn: async () => {
+      const data = await api("/categories");
+      return (data ?? []) as CategoryTreeItem[];
+    },
+  });
+
   const { data: ad, isLoading, isError } = useQuery({
     queryKey: ["advertisement", id],
     queryFn: async () => {
@@ -46,6 +68,19 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
     },
     enabled: !!id,
   });
+
+  const getCategoryName = () => {
+    if (ad?.category?.name) return ad.category.name;
+    if (!ad?.categoryId || !categories) return null;
+    for (const cat of categories) {
+      if (cat.id === ad.categoryId) return cat.name;
+      const sub = cat.children?.find((s: SubCategory) => s.id === ad.categoryId);
+      if (sub) return sub.name;
+    }
+    return null;
+  };
+
+  const categoryName = getCategoryName();
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -64,7 +99,7 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
   if (!id) return null;
 
   const isOwner = profile && ad && profile.id === ad.userId;
-  const isAdmin = profile && profile.role === "admin";
+  const isAdmin = profile && (profile.role === "ADMIN" || (profile.role as string) === "admin");
   const showEdit = isOwner;
   const showDelete = isOwner || isAdmin;
 
@@ -74,13 +109,6 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
         <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-background/95 backdrop-blur-sm border shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 sm:rounded-xl">
           <DialogTitle className="sr-only">Advertisement Details</DialogTitle>
           <DialogDescription className="sr-only">View complete details of this advertisement</DialogDescription>
-          
-          {/* Header */}
-          <div className="flex items-center justify-end p-4 border-b bg-background">
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
 
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 md:p-8">
@@ -109,12 +137,12 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
                   {/* Right Column - Details */}
                   <div className="flex flex-col h-full">
                     <div className="mb-6">
-                      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">{ad.title}</h1>
+                      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 pr-8">{ad.title}</h1>
                       <div className="flex items-center gap-4 text-muted-foreground mt-4 mb-2">
-                        {ad.categoryId && (
+                        {(categoryName || ad.categoryId) && (
                           <div className="flex items-center text-sm">
                             <Tag className="mr-1.5 h-4 w-4" />
-                            <span>Category: {ad.categoryId}</span>
+                            <span>Category: {categoryName || `Category ${ad.categoryId}`}</span>
                           </div>
                         )}
                         <div className="flex items-center text-sm">
@@ -212,3 +240,5 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
     </>
   );
 }
+
+export { AdDetailsModal as AdDetailModal };

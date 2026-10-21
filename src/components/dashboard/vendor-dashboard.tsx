@@ -232,7 +232,7 @@ export function VendorDashboard({ user }: VendorDashboardProps) {
         <h2 className="text-base font-semibold">My Products</h2>
         <DataTable
           columns={productColumns}
-          data={(ads?.data as Record<string, unknown>[]) ?? []}
+          data={(ads?.data as unknown as Record<string, unknown>[]) ?? []}
           meta={ads?.meta}
           onPageChange={setPage}
           isLoading={adsLoading}
