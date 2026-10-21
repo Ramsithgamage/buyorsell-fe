@@ -17,6 +17,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { PromotionalCarousel } from "@/components/promotional-carousel";
 import hero from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
@@ -61,11 +62,7 @@ function useCountdown(seconds: number) {
 }
 
 function Price({ value }: { value: number }) {
-  return (
-    <div className="mt-1 font-semibold text-brand">
-      LKR {Number(value).toLocaleString()}
-    </div>
-  );
+  return <div className="mt-1 font-semibold text-brand">LKR {Number(value).toLocaleString()}</div>;
 }
 
 function ProductCard({ l }: { l: Listing }) {
@@ -147,7 +144,10 @@ function Landing() {
             </Button>
           </form>
           <Link to="/auth" className="hidden shrink-0 md:block">
-            <Button variant="outline" className="h-11 border-white/30 bg-transparent hover:bg-white/10">
+            <Button
+              variant="outline"
+              className="h-11 border-white/30 bg-transparent hover:bg-white/10"
+            >
               Become a seller
             </Button>
           </Link>
@@ -173,7 +173,11 @@ function Landing() {
 
           <div className="grid gap-4 md:grid-cols-[1fr_260px]">
             <div className="relative overflow-hidden rounded-lg border">
-              <img src={hero} alt="Verdant marketplace deals" className="h-64 w-full object-cover md:h-80" />
+              <img
+                src={hero}
+                alt="Verdant marketplace deals"
+                className="h-64 w-full object-cover md:h-80"
+              />
               <div className="absolute inset-0 bg-hero-radial opacity-85" />
               <div className="absolute inset-0 flex flex-col justify-center p-6 text-brand-foreground md:p-10">
                 <Badge className="w-fit bg-brand-glow text-brand">Mega Deals</Badge>
@@ -193,7 +197,10 @@ function Landing() {
                 { t: "Free to list", d: "Sell in minutes", i: Store },
                 { t: "Rated sellers", d: "Real buyer reviews", i: ShieldCheck },
               ].map((b) => (
-                <div key={b.t} className="flex flex-col justify-center rounded-lg border bg-card p-5">
+                <div
+                  key={b.t}
+                  className="flex flex-col justify-center rounded-lg border bg-card p-5"
+                >
                   <b.i className="h-6 w-6 text-brand" />
                   <div className="mt-2 font-semibold">{b.t}</div>
                   <div className="text-sm text-muted-foreground">{b.d}</div>
@@ -231,13 +238,20 @@ function Landing() {
               </h2>
               <div className="hidden items-center gap-1 text-sm sm:flex">
                 {[h, m, s].map((v, i) => (
-                  <span key={i} className="rounded bg-brand px-2 py-1 font-mono text-brand-foreground">
+                  <span
+                    key={i}
+                    className="rounded bg-brand px-2 py-1 font-mono text-brand-foreground"
+                  >
                     {v}
                   </span>
                 ))}
               </div>
             </div>
-            <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="shrink-0 text-sm text-brand hover:underline">
+            <Link
+              to="/browse"
+              search={{ q: "", category: "", sub: "" }}
+              className="shrink-0 text-sm text-brand hover:underline"
+            >
               Shop all →
             </Link>
           </div>
@@ -249,26 +263,9 @@ function Landing() {
         </div>
       </section>
 
-      {/* Categories grid */}
+      {/* Promotional Advertisement */}
       <section className="mx-auto max-w-7xl px-4 pb-6">
-        <div className="rounded-lg border bg-card p-4">
-          <h2 className="text-xl font-semibold">Categories</h2>
-          <div className="mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-lg bg-border sm:grid-cols-4 lg:grid-cols-8">
-            {(categories ?? []).map((c) => (
-              <Link
-                key={c.id}
-                to="/browse"
-                search={{ q: "", category: c.slug, sub: "" }}
-                className="flex flex-col items-center gap-2 bg-card px-2 py-5 text-center transition hover:bg-accent"
-              >
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-brand">
-                  <Store className="h-5 w-5" />
-                </span>
-                <span className="line-clamp-2 text-xs">{c.name}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <PromotionalCarousel />
       </section>
 
       {/* Just for you */}
@@ -292,8 +289,16 @@ function Landing() {
         <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 px-4 py-10 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} Verdant Marketplace</span>
           <div className="flex gap-4">
-            <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hover:text-foreground">Browse</Link>
-            <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+            <Link
+              to="/browse"
+              search={{ q: "", category: "", sub: "" }}
+              className="hover:text-foreground"
+            >
+              Browse
+            </Link>
+            <Link to="/auth" className="hover:text-foreground">
+              Sign in
+            </Link>
           </div>
         </div>
       </footer>
