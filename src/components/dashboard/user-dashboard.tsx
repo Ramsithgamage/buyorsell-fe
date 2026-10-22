@@ -5,10 +5,8 @@ import {
   ListOrdered,
   CheckCircle2,
   PlusCircle,
-  ShoppingBag,
   Eye,
   Pencil,
-  Clock,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
@@ -16,7 +14,6 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { DataTable, type Column } from "@/components/dashboard/data-table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { UserProfile } from "@/hooks/use-profile";
 
@@ -197,25 +194,6 @@ export function UserDashboard({ user }: UserDashboardProps) {
           isLoading={adsLoading}
           emptyMessage="You haven't posted any listings yet."
         />
-      </section>
-
-      {/* Purchase History — Coming Soon */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Purchase History</h2>
-        <div className="rounded-xl border border-dashed bg-muted/30 p-10 flex flex-col items-center gap-3 text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-muted text-muted-foreground">
-            <ShoppingBag className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="font-medium text-sm">Purchase history coming soon</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Once our order system launches, your purchases will appear here.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground border rounded-full px-3 py-1 bg-background">
-            <Clock className="h-3 w-3" /> In development
-          </div>
-        </div>
       </section>
     </div>
   );

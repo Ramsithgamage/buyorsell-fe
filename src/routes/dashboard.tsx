@@ -1,14 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { z } from "zod";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
 import { VendorDashboard } from "@/components/dashboard/vendor-dashboard";
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
+import { OrdersDashboard } from "@/components/dashboard/orders-dashboard";
+import { PurchaseHistoryDashboard } from "@/components/dashboard/purchase-history-dashboard";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const dashboardSearchSchema = z.object({
+  tab: z.string().optional().catch(undefined),
+});
+
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (s) => dashboardSearchSchema.parse(s),
   beforeLoad: () => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("access_token");
@@ -52,6 +60,7 @@ function LoadingShell() {
 function DashboardPage() {
   const navigate = useNavigate();
   const { user, isLoading, isAuthenticated, isAdmin, isVendor } = useAuth();
+  const { tab } = Route.useSearch();
 
   useEffect(() => {
     // Only redirect if we are not loading AND there is no authenticated user
@@ -65,6 +74,10 @@ function DashboardPage() {
 
   const renderContent = () => {
     if (isLoading || !user) return <LoadingShell />;
+    // Orders tab is available for USER and VENDOR roles (not admin)
+    if (tab === "orders" && !isAdmin) return <OrdersDashboard />;
+    // Purchase History tab is USER-only
+    if (tab === "purchase-history" && !isAdmin && !isVendor) return <PurchaseHistoryDashboard />;
     if (isAdmin) return <AdminDashboard user={user} />;
     if (isVendor) return <VendorDashboard user={user} />;
     return <UserDashboard user={user} />;

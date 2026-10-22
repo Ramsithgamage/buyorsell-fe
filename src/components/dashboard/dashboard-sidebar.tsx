@@ -34,13 +34,15 @@ import type { UserProfile } from "@/hooks/use-profile";
 const userNav = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard, section: "My Account" },
   { label: "My Listings", to: "/dashboard", icon: ListOrdered, section: "My Account" },
-  { label: "Purchase History", to: "/dashboard", icon: ShoppingBag, section: "My Account" },
+  { label: "Orders", to: "/dashboard", search: { tab: "orders" }, icon: Package, section: "My Account" },
+  { label: "Purchase History", to: "/dashboard", search: { tab: "purchase-history" }, icon: ShoppingBag, section: "My Account" },
   { label: "Post New Ad", to: "/post-ad", icon: PlusCircle, section: "Actions" },
 ];
 
 const vendorNav = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard, section: "Store" },
   { label: "Products", to: "/dashboard", icon: Package, section: "Store" },
+  { label: "Orders", to: "/dashboard", search: { tab: "orders" }, icon: Package, section: "Store" },
   { label: "Add Product", to: "/post-ad", icon: PlusCircle, section: "Actions" },
 ];
 
@@ -134,7 +136,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                 {items.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton asChild tooltip={item.label}>
-                      <Link to={item.to as "/dashboard" | "/post-ad"}>
+                      <Link
+                        to={item.to as "/dashboard" | "/post-ad"}
+                        search={"search" in item ? (item.search as Record<string, string>) : undefined}
+                      >
                         <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
                       </Link>

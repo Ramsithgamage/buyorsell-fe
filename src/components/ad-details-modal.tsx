@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ImageGallery } from "@/components/image-gallery";
 import { AdEditModal } from "@/components/ad-edit-modal";
+import { OrderFormModal } from "@/components/order-form-modal";
 
 interface SubCategory {
   id: number;
@@ -49,6 +50,7 @@ interface AdDetailsModalProps {
 export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
   const queryClient = useQueryClient();
   const { data: profile } = useProfile();
 
@@ -102,6 +104,8 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
   const isAdmin = profile && (profile.role === "ADMIN" || (profile.role as string) === "admin");
   const showEdit = isOwner;
   const showDelete = isOwner || isAdmin;
+  // Show Order button to any logged-in user who is NOT the ad owner
+  const canOrder = profile && ad && profile.id !== ad.userId;
 
   return (
     <>
@@ -175,28 +179,42 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
                       </div>
 
                       {/* Action Buttons */}
-                      {(showEdit || showDelete) && (
-                        <div className="flex gap-3 pt-4 border-t">
-                          {showEdit && (
-                            <Button
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => setIsEditOpen(true)}
-                            >
-                              Edit details
-                            </Button>
-                          )}
-                          {showDelete && (
-                            <Button
-                              variant="destructive"
-                              className={showEdit ? "flex-1" : "w-full"}
-                              onClick={() => setIsDeleteDialogOpen(true)}
-                            >
-                              Delete advertisement
-                            </Button>
-                          )}
-                        </div>
-                      )}
+                      <div className="space-y-3 pt-4 border-t">
+                        {/* Order button — visible to non-owners only */}
+                        {canOrder && (
+                          <Button
+                            id="place-order-btn"
+                            className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
+                            onClick={() => setIsOrderOpen(true)}
+                          >
+                            Order
+                          </Button>
+                        )}
+
+                        {/* Edit / Delete buttons — visible to owner and/or admin */}
+                        {(showEdit || showDelete) && (
+                          <div className="flex gap-3">
+                            {showEdit && (
+                              <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => setIsEditOpen(true)}
+                              >
+                                Edit details
+                              </Button>
+                            )}
+                            {showDelete && (
+                              <Button
+                                variant="destructive"
+                                className={showEdit ? "flex-1" : "w-full"}
+                                onClick={() => setIsDeleteDialogOpen(true)}
+                              >
+                                Delete advertisement
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -215,6 +233,17 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["advertisement", id] });
           }}
+        />
+      )}
+
+      {/* Order form — shown to non-owners */}
+      {ad && canOrder && (
+        <OrderFormModal
+          adId={ad.id}
+          adTitle={ad.title}
+          isOpen={isOrderOpen}
+          onOpenChange={setIsOrderOpen}
+          onSuccess={onClose}
         />
       )}
 
