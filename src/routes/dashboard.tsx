@@ -8,6 +8,7 @@ import { VendorDashboard } from "@/components/dashboard/vendor-dashboard";
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
 import { OrdersDashboard } from "@/components/dashboard/orders-dashboard";
 import { PurchaseHistoryDashboard } from "@/components/dashboard/purchase-history-dashboard";
+import { NotificationsHistoryDashboard } from "@/components/dashboard/notifications-history-dashboard";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -78,6 +79,8 @@ function DashboardPage() {
     if (tab === "orders" && !isAdmin) return <OrdersDashboard />;
     // Purchase History tab is USER-only
     if (tab === "purchase-history" && !isAdmin && !isVendor) return <PurchaseHistoryDashboard />;
+    // Notifications history — available to all roles
+    if (tab === "notifications") return <NotificationsHistoryDashboard />;
     if (isAdmin) return <AdminDashboard user={user} />;
     if (isVendor) return <VendorDashboard user={user} />;
     return <UserDashboard user={user} />;

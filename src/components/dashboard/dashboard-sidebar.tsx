@@ -10,6 +10,7 @@ import {
   Megaphone,
   LeafyGreen,
   LogOut,
+  Bell,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const userNav = [
   { label: "My Listings", to: "/dashboard", icon: ListOrdered, section: "My Account" },
   { label: "Orders", to: "/dashboard", search: { tab: "orders" }, icon: Package, section: "My Account" },
   { label: "Purchase History", to: "/dashboard", search: { tab: "purchase-history" }, icon: ShoppingBag, section: "My Account" },
+  { label: "Notifications", to: "/dashboard", search: { tab: "notifications" }, icon: Bell, section: "My Account" },
   { label: "Post New Ad", to: "/post-ad", icon: PlusCircle, section: "Actions" },
 ];
 
@@ -43,6 +45,7 @@ const vendorNav = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard, section: "Store" },
   { label: "Products", to: "/dashboard", icon: Package, section: "Store" },
   { label: "Orders", to: "/dashboard", search: { tab: "orders" }, icon: Package, section: "Store" },
+  { label: "Notifications", to: "/dashboard", search: { tab: "notifications" }, icon: Bell, section: "Store" },
   { label: "Add Product", to: "/post-ad", icon: PlusCircle, section: "Actions" },
 ];
 
@@ -51,6 +54,7 @@ const adminNav = [
   { label: "Users", to: "/dashboard", icon: Users, section: "Platform" },
   { label: "Pending Approvals", to: "/dashboard", icon: ClipboardCheck, section: "Platform" },
   { label: "Advertisements", to: "/dashboard", icon: Megaphone, section: "Platform" },
+  { label: "Notifications", to: "/dashboard", search: { tab: "notifications" }, icon: Bell, section: "Platform" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

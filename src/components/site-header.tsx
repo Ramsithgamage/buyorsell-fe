@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import { api } from "@/lib/api";
 import { useProfile } from "@/hooks/use-profile";
 import { useQueryClient } from "@tanstack/react-query";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function SiteHeader() {
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
@@ -80,6 +81,7 @@ export function SiteHeader() {
                   <LayoutDashboard className="h-4 w-4" />Dashboard
                 </Button>
               </Link>
+              <NotificationBell enabled={isAuthenticated} />
               <Button size="sm" variant="outline" onClick={signOut}>
                 <LogOut className="h-4 w-4 mr-1.5" />Sign out
               </Button>
