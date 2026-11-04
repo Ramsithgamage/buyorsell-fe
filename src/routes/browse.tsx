@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Search, MapPin, Package, Plus } from "lucide-react";
+import { Search, MapPin, Package, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { SiteHeader } from "@/components/site-header";
@@ -44,7 +44,12 @@ function Browse() {
   const [term, setTerm] = useState(q);
   const [selectedAdId, setSelectedAdId] = useState<number | null>(null);
 
-  const { data: categories } = useQuery({
+  // Keep the input in sync when the URL query changes (header links, back/forward, etc.)
+  useEffect(() => {
+    setTerm(q);
+  }, [q]);
+
+  const { data: categories, isLoading: catsLoading } = useQuery({
     queryKey: ["cats"],
     queryFn: async () => {
       const data = await api("/categories");
@@ -54,21 +59,41 @@ function Browse() {
 
   const activeCat = categories?.find((c) => c.slug === category);
   const subs = activeCat?.children ?? [];
+  const activeSub = subs.find((s) => s.slug === sub);
+  const catId = activeSub ? activeSub.id : activeCat ? activeCat.id : undefined;
+  const searchTerm = q.trim();
 
-  const { data: listings, isLoading } = useQuery({
-    queryKey: ["listings", q, category, sub],
+  // Wait for categories when a category filter is in the URL, otherwise the
+  // first request would be sent without the category and show unfiltered results.
+  const waitingForCategory = !!category && catsLoading;
+
+  const { data: result, isLoading: listingsLoading } = useQuery({
+    queryKey: ["listings", searchTerm, catId ?? null],
+    enabled: !waitingForCategory,
     queryFn: async () => {
-      const activeSub = subs?.find((s) => s.slug === sub);
-      const catId = activeSub ? activeSub.id : (activeCat ? activeCat.id : undefined);
-
       const params = new URLSearchParams({ limit: "50", page: "1" });
-      if (q) params.append("q", q);
+      if (searchTerm) params.append("q", searchTerm);
       if (catId) params.append("categoryId", catId.toString());
 
       const data = await api(`/advertisements?${params.toString()}`);
-      return (data?.data ?? []) as Listing[];
+      return {
+        items: (data?.data ?? []) as Listing[],
+        total: (data?.meta?.totalItems ?? data?.data?.length ?? 0) as number,
+      };
     },
   });
+  const listings = result?.items;
+  const isLoading = waitingForCategory || listingsLoading;
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, q: term.trim() }) });
+  };
+
+  const clearSearch = () => {
+    setTerm("");
+    navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, q: "" }) });
+  };
 
   const getCategoryName = (categoryId: number) => {
     for (const cat of categories ?? []) {
@@ -85,13 +110,26 @@ function Browse() {
 
       <div className="border-b bg-secondary/30">
         <div className="mx-auto max-w-7xl px-4 py-6">
-          <form
-            onSubmit={(e) => { e.preventDefault(); navigate({ search: (p: z.infer<typeof searchSchema>) => ({ ...p, q: term }) }); }}
-            className="flex gap-2"
-          >
+          <form onSubmit={submitSearch} className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search items…" className="pl-9 h-11" />
+              <Input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                placeholder="Search items…"
+                className="pl-9 pr-9 h-11"
+                maxLength={100}
+              />
+              {term && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <Button type="submit" className="h-11 bg-brand text-brand-foreground hover:opacity-90">Search</Button>
           </form>
@@ -149,10 +187,10 @@ function Browse() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h1 className="text-2xl font-semibold">
-                {activeCat ? activeCat.name : "All listings"}
-                {q && <span className="text-muted-foreground font-normal"> · "{q}"</span>}
+                {activeCat ? (activeSub ? `${activeCat.name} › ${activeSub.name}` : activeCat.name) : "All listings"}
+                {searchTerm && <span className="text-muted-foreground font-normal"> · "{searchTerm}"</span>}
               </h1>
-              <p className="text-sm text-muted-foreground">{listings?.length ?? 0} results</p>
+              <p className="text-sm text-muted-foreground">{isLoading ? "Searching…" : `${result?.total ?? 0} results`}</p>
             </div>
             <Link to="/post-ad">
               <Button size="icon" className="h-10 w-10 rounded-full bg-brand text-brand-foreground hover:opacity-90 shadow-sm transition-transform hover:scale-105">
@@ -203,6 +241,22 @@ function Browse() {
                   </div>
                 </article>
               ))}
+            </div>
+          ) : searchTerm ? (
+            <div className="rounded-xl border border-dashed p-16 text-center">
+              <Search className="mx-auto h-10 w-10 text-muted-foreground" />
+              <h3 className="mt-3 font-semibold">No results for "{searchTerm}"</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Try different keywords{activeCat ? " or search in all categories" : ""}.
+              </p>
+              <div className="mt-4 flex justify-center gap-2">
+                <Button variant="outline" onClick={clearSearch}>Clear search</Button>
+                {activeCat && (
+                  <Link to="/browse" search={{ q: searchTerm, category: "", sub: "" }}>
+                    <Button className="bg-brand text-brand-foreground hover:opacity-90">Search all categories</Button>
+                  </Link>
+                )}
+              </div>
             </div>
           ) : (
             <div className="rounded-xl border border-dashed p-16 text-center">

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
@@ -95,6 +95,7 @@ function ProductCard({ l }: { l: Listing }) {
 }
 
 function Landing() {
+  const navigate = useNavigate();
   const [h, m, s] = useCountdown(6 * 3600 + 42 * 60);
 
   const { data: categories } = useQuery({
@@ -127,8 +128,8 @@ function Landing() {
             className="flex flex-1 gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              const q = new FormData(e.currentTarget).get("q") as string;
-              window.location.href = `/browse?q=${encodeURIComponent(q ?? "")}`;
+              const q = (new FormData(e.currentTarget).get("q") as string | null) ?? "";
+              navigate({ to: "/browse", search: { q: q.trim(), category: "", sub: "" } });
             }}
           >
             <div className="relative flex-1">
