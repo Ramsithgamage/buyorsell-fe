@@ -57,7 +57,7 @@ export function SiteHeader() {
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand text-brand-foreground">
             <LeafyGreen className="h-5 w-5" />
           </span>
-          <span className="text-lg tracking-tight">Verdant</span>
+          <span className="text-lg tracking-tight">Buy Or Sell</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
           <Link to="/browse" search={{ q: "", category: "", sub: "" }} className="hover:text-foreground transition">Browse</Link>
