@@ -25,7 +25,7 @@ import {
 export const Route = createFileRoute("/listing/$id")({
   head: () => ({
     meta: [
-      { title: "Listing Details — Verdant" },
+      { title: "Listing Details — Buy Or Sell" },
       { name: "description", content: "View full details for this advertisement." },
     ],
   }),
@@ -153,7 +153,7 @@ function ListingDetail() {
                   </div>
                   <div>
                     <p className="font-semibold">{ad.user ? `${ad.user.firstName} ${ad.user.lastName}` : `User ID: ${ad.userId}`}</p>
-                    <p className="text-sm text-muted-foreground">Seller on Verdant</p>
+                    <p className="text-sm text-muted-foreground">Seller on Buy Or Sell</p>
                   </div>
                 </div>
 

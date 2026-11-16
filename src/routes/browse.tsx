@@ -21,10 +21,10 @@ export const Route = createFileRoute("/browse")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Browse listings — Verdant" },
-      { name: "description", content: "Search and filter thousands of items for sale across every category on Verdant." },
-      { property: "og:title", content: "Browse listings — Verdant" },
-      { property: "og:description", content: "Search and filter items for sale across every category on Verdant." },
+      { title: "Browse listings — Buy Or Sell" },
+      { name: "description", content: "Search and filter thousands of items for sale across every category on Buy Or Sell." },
+      { property: "og:title", content: "Browse listings — Buy Or Sell" },
+      { property: "og:description", content: "Search and filter items for sale across every category on Buy Or Sell." },
     ],
   }),
   component: Browse,

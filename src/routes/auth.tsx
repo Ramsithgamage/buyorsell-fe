@@ -15,10 +15,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in or create your Verdant account" },
-      { name: "description", content: "Register as a buyer or seller and start using Verdant marketplace." },
-      { property: "og:title", content: "Sign in — Verdant" },
-      { property: "og:description", content: "Register as a buyer or seller and start using Verdant." },
+      { title: "Sign in or create your Buy Or Sell account" },
+      { name: "description", content: "Register as a buyer or seller and start using Buy Or Sell marketplace." },
+      { property: "og:title", content: "Sign in — Buy Or Sell" },
+      { property: "og:description", content: "Register as a buyer or seller and start using Buy Or Sell." },
     ],
   }),
   component: AuthPage,
@@ -122,7 +122,7 @@ function AuthPage() {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-brand text-brand-foreground">
             <LeafyGreen className="h-6 w-6" />
           </div>
-          <h1 className="mt-4 text-2xl font-semibold">Welcome to Verdant</h1>
+          <h1 className="mt-4 text-2xl font-semibold">Welcome to Buy Or Sell</h1>
           <p className="text-sm text-muted-foreground mt-1">Buy or sell — start in seconds.</p>
         </div>
 

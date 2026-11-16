@@ -174,7 +174,7 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
                         </div>
                         <div>
                           <p className="font-medium text-sm">{ad.user ? `${ad.user.firstName} ${ad.user.lastName}` : `User ID: ${ad.userId}`}</p>
-                          <p className="text-xs text-muted-foreground">Seller on Verdant</p>
+                          <p className="text-xs text-muted-foreground">Seller on Buy Or Sell</p>
                         </div>
                       </div>
 

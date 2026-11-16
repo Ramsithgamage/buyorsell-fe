@@ -23,13 +23,13 @@ import hero from "@/assets/hero.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Verdant — Online Shopping Marketplace in Sri Lanka" },
+      { title: "Buy Or Sell — Online Shopping Marketplace in Sri Lanka" },
       {
         name: "description",
         content:
-          "Shop flash deals, browse every category and discover thousands of items from trusted sellers on Verdant marketplace.",
+          "Shop flash deals, browse every category and discover thousands of items from trusted sellers on Buy Or Sell marketplace.",
       },
-      { property: "og:title", content: "Verdant — Online Shopping Marketplace" },
+      { property: "og:title", content: "Buy Or Sell — Online Shopping Marketplace" },
       {
         property: "og:description",
         content: "Flash deals, categories and thousands of listings from trusted sellers.",
@@ -136,7 +136,7 @@ function Landing() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 name="q"
-                placeholder="Search in Verdant…"
+                placeholder="Search in Buy Or Sell…"
                 className="h-11 border-0 bg-card pl-9 text-foreground"
               />
             </div>
@@ -176,7 +176,7 @@ function Landing() {
             <div className="relative overflow-hidden rounded-lg border">
               <img
                 src={hero}
-                alt="Verdant marketplace deals"
+                alt="Buy Or Sell marketplace deals"
                 className="h-64 w-full object-cover md:h-80"
               />
               <div className="absolute inset-0 bg-hero-radial opacity-85" />
@@ -288,7 +288,7 @@ function Landing() {
 
       <footer className="border-t bg-card">
         <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 px-4 py-10 text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} Verdant Marketplace</span>
+          <span>© {new Date().getFullYear()} Buy Or Sell Marketplace</span>
           <div className="flex gap-4">
             <Link
               to="/browse"

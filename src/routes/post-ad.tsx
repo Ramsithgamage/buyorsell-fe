@@ -30,8 +30,8 @@ export const Route = createFileRoute("/post-ad")({
   },
   head: () => ({
     meta: [
-      { title: "Post an Advertisement — Verdant" },
-      { name: "description", content: "Create a new listing on Verdant marketplace." },
+      { title: "Post an Advertisement — Buy Or Sell" },
+      { name: "description", content: "Create a new listing on Buy Or Sell marketplace." },
     ],
   }),
   component: PostAd,

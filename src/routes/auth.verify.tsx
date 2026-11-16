@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth/verify")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Verify your email — Verdant" },
-      { name: "description", content: "Complete your Verdant account setup by verifying your email address." },
+      { title: "Verify your email — Buy Or Sell" },
+      { name: "description", content: "Complete your Buy Or Sell account setup by verifying your email address." },
     ],
   }),
   component: VerifyPage,

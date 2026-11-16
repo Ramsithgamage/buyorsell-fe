@@ -79,8 +79,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Verdant — Marketplace" },
-      { name: "description", content: "Buy and sell anything on Verdant, a calm modern marketplace." },
+      { title: "Buy Or Sell — Marketplace" },
+      { name: "description", content: "Buy and sell anything on Buy Or Sell, a calm modern marketplace." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

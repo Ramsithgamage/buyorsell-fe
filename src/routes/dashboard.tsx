@@ -26,8 +26,8 @@ export const Route = createFileRoute("/dashboard")({
   },
   head: () => ({
     meta: [
-      { title: "Dashboard — Verdant" },
-      { name: "description", content: "Manage your Verdant account, listings, and settings." },
+      { title: "Dashboard — Buy Or Sell" },
+      { name: "description", content: "Manage your Buy Or Sell account, listings, and settings." },
       { name: "robots", content: "noindex" },
     ],
   }),
