@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ListOrdered,
@@ -25,9 +25,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { api } from "@/lib/api";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSignOut } from "@/hooks/use-sign-out";
 import type { UserProfile } from "@/hooks/use-profile";
 
 // ─── Nav item definitions per role ────────────────────────────────────────────
@@ -64,9 +62,6 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
   const nav =
     user?.role === "ADMIN"
       ? adminNav
@@ -91,18 +86,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         ? "Vendor"
         : "Member";
 
-  const signOut = async () => {
-    try {
-      await api("/auth/logout", { method: "POST" });
-    } catch {
-      // ignore
-    }
-    await supabase.auth.signOut();
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    queryClient.setQueryData(["profile"], null);
-    navigate({ to: "/" });
-  };
+  const signOut = useSignOut();
 
   return (
     <Sidebar collapsible="icon">

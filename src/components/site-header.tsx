@@ -1,20 +1,17 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LeafyGreen, Search, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
+import { LeafyGreen, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
-import { api } from "@/lib/api";
 import { useProfile } from "@/hooks/use-profile";
-import { useQueryClient } from "@tanstack/react-query";
 import { NotificationBell } from "@/components/notification-bell";
+import { UserMenu } from "@/components/user-menu";
 
 export function SiteHeader() {
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
   const [hasToken, setHasToken] = useState(false);
   const { data: profile } = useProfile();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSupabaseUser(data.session?.user ?? null));
@@ -32,20 +29,6 @@ export function SiteHeader() {
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
-
-  const signOut = async () => {
-    try {
-      await api("/auth/logout", { method: "POST" });
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-    await supabase.auth.signOut();
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    setHasToken(false);
-    queryClient.setQueryData(["profile"], null);
-    navigate({ to: "/" });
-  };
 
   const userEmail = profile?.email || supabaseUser?.email;
   const isAuthenticated = hasToken || !!supabaseUser;
@@ -71,20 +54,8 @@ export function SiteHeader() {
           </Link>
           {isAuthenticated ? (
             <>
-              {userEmail && (
-                <span className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <UserIcon className="h-4 w-4" />{userEmail}
-                </span>
-              )}
-              <Link to="/dashboard">
-                <Button size="sm" variant="outline" className="gap-1.5">
-                  <LayoutDashboard className="h-4 w-4" />Dashboard
-                </Button>
-              </Link>
               <NotificationBell enabled={isAuthenticated} />
-              <Button size="sm" variant="outline" onClick={signOut}>
-                <LogOut className="h-4 w-4 mr-1.5" />Sign out
-              </Button>
+              <UserMenu fallbackEmail={userEmail} />
             </>
           ) : (
             <Link to="/auth">

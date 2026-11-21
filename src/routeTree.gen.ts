@@ -14,7 +14,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PostAdRouteImport } from './routes/post-ad'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 
@@ -43,9 +45,19 @@ const PostAdRoute = PostAdRouteImport.update({
   path: '/post-ad',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyRoute = AuthVerifyRouteImport.update({
@@ -65,7 +77,9 @@ export interface FileRoutesByFullPath {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
+  '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wishlist': typeof WishlistRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/listing/$id': typeof ListingIdRoute
 }
@@ -75,7 +89,9 @@ export interface FileRoutesByTo {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
+  '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wishlist': typeof WishlistRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/listing/$id': typeof ListingIdRoute
 }
@@ -86,7 +102,9 @@ export interface FileRoutesById {
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
   '/post-ad': typeof PostAdRoute
+  '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wishlist': typeof WishlistRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/listing/$id': typeof ListingIdRoute
 }
@@ -98,7 +116,9 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post-ad'
+    | '/profile'
     | '/sitemap.xml'
+    | '/wishlist'
     | '/auth/verify'
     | '/listing/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +128,9 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post-ad'
+    | '/profile'
     | '/sitemap.xml'
+    | '/wishlist'
     | '/auth/verify'
     | '/listing/$id'
   id:
@@ -118,7 +140,9 @@ export interface FileRouteTypes {
     | '/browse'
     | '/dashboard'
     | '/post-ad'
+    | '/profile'
     | '/sitemap.xml'
+    | '/wishlist'
     | '/auth/verify'
     | '/listing/$id'
   fileRoutesById: FileRoutesById
@@ -129,7 +153,9 @@ export interface RootRouteChildren {
   BrowseRoute: typeof BrowseRoute
   DashboardRoute: typeof DashboardRoute
   PostAdRoute: typeof PostAdRoute
+  ProfileRoute: typeof ProfileRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WishlistRoute: typeof WishlistRoute
   ListingIdRoute: typeof ListingIdRoute
 }
 
@@ -170,11 +196,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostAdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify': {
@@ -210,7 +250,9 @@ const rootRouteChildren: RootRouteChildren = {
   BrowseRoute: BrowseRoute,
   DashboardRoute: DashboardRoute,
   PostAdRoute: PostAdRoute,
+  ProfileRoute: ProfileRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WishlistRoute: WishlistRoute,
   ListingIdRoute: ListingIdRoute,
 }
 export const routeTree = rootRouteImport

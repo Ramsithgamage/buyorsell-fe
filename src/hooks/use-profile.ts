@@ -8,6 +8,12 @@ export type UserProfile = {
   email: string;
   role: "USER" | "VENDOR" | "ADMIN";
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  avatarUrl: string | null;
+  createdAt: string;
+  vendorProfile?: {
+    companyName: string;
+    businessRegistrationNumber: string;
+  } | null;
 };
 
 export function useProfile() {
