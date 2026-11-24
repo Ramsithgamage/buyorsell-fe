@@ -26,6 +26,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useSignOut } from "@/hooks/use-sign-out";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile } from "@/hooks/use-profile";
 
 // ─── Nav item definitions per role ────────────────────────────────────────────
@@ -145,9 +146,12 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-2 px-2 py-1">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground text-xs font-semibold">
-                {user?.firstName?.[0] ?? "?"}
-              </span>
+              <Avatar className="h-7 w-7 shrink-0">
+                {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
+                <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-xs font-semibold">
+                  {user?.firstName?.[0] ?? "?"}
+                </AvatarFallback>
+              </Avatar>
               <div className="min-w-0 flex-1 overflow-hidden leading-tight group-data-[collapsible=icon]:hidden">
                 <p className="truncate text-sm font-medium text-sidebar-foreground">
                   {user?.firstName} {user?.lastName}

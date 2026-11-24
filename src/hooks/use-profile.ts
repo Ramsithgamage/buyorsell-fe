@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 export type UserProfile = {
@@ -31,5 +31,53 @@ export function useProfile() {
       }
     },
     retry: false, // Don't retry on 401s
+  });
+}
+
+
+/** Update first/last name. Refreshes the cached profile (header + sidebar update instantly). */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: { firstName: string; lastName: string }) =>
+      (await api("/profile", { method: "PATCH", body: JSON.stringify(values) })) as UserProfile,
+    onSuccess: (data) => queryClient.setQueryData(["profile"], data),
+  });
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append("avatar", file);
+      return (await api("/profile/avatar", { method: "POST", body: form })) as UserProfile;
+    },
+    onSuccess: (data) => queryClient.setQueryData(["profile"], data),
+  });
+}
+
+export function useRemoveAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api("/profile/avatar", { method: "DELETE" })) as UserProfile,
+    onSuccess: (data) => queryClient.setQueryData(["profile"], data),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (values: {
+      currentPassword: string;
+      newPassword: string;
+      newPasswordConfirm: string;
+    }) => api("/profile/change-password", { method: "POST", body: JSON.stringify(values) }),
+  });
+}
+
+export function useDeleteAccount() {
+  return useMutation({
+    mutationFn: async (password: string) =>
+      api("/profile", { method: "DELETE", body: JSON.stringify({ password }) }),
   });
 }
