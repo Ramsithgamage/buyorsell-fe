@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageGallery } from "@/components/image-gallery";
 import { AdEditModal } from "@/components/ad-edit-modal";
 import { OrderFormModal } from "@/components/order-form-modal";
+import { WishlistButton } from "@/components/wishlist-button";
 
 interface SubCategory {
   id: number;
@@ -141,7 +142,10 @@ export function AdDetailsModal({ id, onClose }: AdDetailsModalProps) {
                   {/* Right Column - Details */}
                   <div className="flex flex-col h-full">
                     <div className="mb-6">
-                      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 pr-8">{ad.title}</h1>
+                      <div className="flex items-start justify-between gap-3">
+                        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 pr-8">{ad.title}</h1>
+                        <WishlistButton adId={ad.id} ownerId={ad.userId} className="mr-6 shrink-0 border" />
+                      </div>
                       <div className="flex items-center gap-4 text-muted-foreground mt-4 mb-2">
                         {(categoryName || ad.categoryId) && (
                           <div className="flex items-center text-sm">

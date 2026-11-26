@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdDetailsModal } from "@/components/ad-details-modal";
+import { WishlistButton } from "@/components/wishlist-button";
 
 const searchSchema = z.object({
   q: z.string().catch(""),
@@ -214,7 +215,8 @@ function Browse() {
                   className="group rounded-xl border bg-card overflow-hidden hover:shadow-lg hover:border-brand transition cursor-pointer"
                   onClick={() => setSelectedAdId(l.id)}
                 >
-                  <div className="aspect-[4/3] bg-accent grid place-items-center overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-accent grid place-items-center overflow-hidden">
+                    <WishlistButton adId={l.id} ownerId={l.userId} className="absolute right-2 top-2 z-10" />
                     {l.images && l.images.length > 0 ? (
                       <img src={l.images[0]} alt={l.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
                     ) : (
