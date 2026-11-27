@@ -208,8 +208,18 @@ export function NotificationsHistoryDashboard() {
           <div className="divide-y divide-border/60">
             {notifications.map((n) => {
               const isUnread = n.readAt === null;
-              const timeAgo = formatDistanceToNow(new Date(n.createdAt), {
+              const createdDate = new Date(n.createdAt);
+              const timeAgo = formatDistanceToNow(createdDate, {
                 addSuffix: true,
+              });
+              const formattedLocal = createdDate.toLocaleString("en-US", {
+                timeZone: "Asia/Colombo",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
               });
               return (
                 <div
@@ -234,8 +244,11 @@ export function NotificationsHistoryDashboard() {
                   <div className="flex-1 min-w-0 space-y-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       {typeBadge(n.type)}
-                      <span className="text-[11px] text-muted-foreground">
-                        {timeAgo}
+                      <span
+                        className="text-[11px] text-muted-foreground"
+                        title={`${formattedLocal} (UTC+5:30)`}
+                      >
+                        {formattedLocal} · {timeAgo}
                       </span>
                     </div>
                     <p className="text-sm text-foreground leading-snug">

@@ -35,6 +35,23 @@ function BadgeCount({ count }: { count: number }) {
   );
 }
 
+function formatNotificationTime(isoString: string): {
+  timeAgo: string;
+  formattedLocal: string;
+} {
+  const date = new Date(isoString);
+  const timeAgo = formatDistanceToNow(date, { addSuffix: true });
+  const formattedLocal = date.toLocaleString("en-US", {
+    timeZone: "Asia/Colombo",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return { timeAgo, formattedLocal };
+}
+
 // ── Notification row ───────────────────────────────────────────────────────────
 
 function NotificationRow({
@@ -45,9 +62,9 @@ function NotificationRow({
   onMarkRead: (id: number) => void;
 }) {
   const isUnread = notification.readAt === null;
-  const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
-    addSuffix: true,
-  });
+  const { timeAgo, formattedLocal } = formatNotificationTime(
+    notification.createdAt,
+  );
 
   return (
     <div
@@ -64,7 +81,12 @@ function NotificationRow({
         <p className="text-sm leading-snug text-foreground line-clamp-2">
           {notification.body}
         </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{timeAgo}</p>
+        <p
+          className="mt-0.5 text-[11px] text-muted-foreground"
+          title={`${formattedLocal} (UTC+5:30)`}
+        >
+          {formattedLocal} · {timeAgo}
+        </p>
       </div>
 
       {/* Mark-as-read button (only when unread) */}
